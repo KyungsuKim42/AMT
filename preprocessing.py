@@ -12,18 +12,17 @@ frame_per_sec = target_sr/float(hop_length) # 31.25
 sec_per_frame = 1/frame_per_sec
 n_bins = 264
 bins_per_octave=36
-real=True
+real=False
 
 #Extracting .wav, .txt file lists
 data_dir = os.path.join(os.path.dirname(__file__),'data')
-wavfile_list = glob.glob(os.path.join(data_dir,'*.wav'))
-txtfile_list = glob.glob(os.path.join(data_dir,'*.txt'))
+wavfile_list = sorted(glob.glob(os.path.join(data_dir,'*.wav')))
+txtfile_list = sorted(glob.glob(os.path.join(data_dir,'*.txt')))
 cqt_list = []
 label_list = []
 
 #Do some CQT
 for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
-    
     #Make CQT matrix
     original_sr,wav = scipy.io.wavfile.read(wavfile)
     wav = 0.5*(wav[:,0]+wav[:,1])
