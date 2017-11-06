@@ -1,6 +1,6 @@
 import numpy as np
 import os
-
+import torch
 def permutate(x,y):
   """
   Permutate x and y array in same way.
@@ -9,7 +9,8 @@ def permutate(x,y):
   Returns
     x,y (numpy array) : Random permutated x,y data. shape = (num_samples,?,?)
   """
-  perm = np.random.permutation(x.shape[0])
+  dtype = torch.cuda.LongTensor
+  perm = torch.randperm(x.size()[0]).type(dtype)
   return x[perm],y[perm]
 
 def standardize(data,axis):

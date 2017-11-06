@@ -11,10 +11,13 @@ import utils
 import pdb
 
 data_path = '/home/data/kyungsu/AMT/processed/'
-max_epoch = 500
+model_save_path = '/home/kyungsukim/AMT/model/AMT_pytorch_model'
+save_freq = 100 
+max_epoch = 5000 
 max_patience = 20
 window_size = 7
 num_features = 264
+batch_size = 256
 class AMT(nn.Module):
   
   def __init__(self):
@@ -50,11 +53,9 @@ class AMT(nn.Module):
     return x
 
 
-def run_train(net,data,criterion,optimizer,batch_size=256):
+def run_train(net,inputs,labels,criterion,optimizer,batch_size=256):
   
   overall_loss = 0.0
-  inputs, labels = data 
-  inputs, labels = Variable(torch.Tensor(inputs)), Variable(torch.Tensor(labels))
   
   num_samples = inputs.size()[0]
   num_batches = (num_samples+batch_size-1) / batch_size
@@ -75,10 +76,8 @@ def run_train(net,data,criterion,optimizer,batch_size=256):
   return loss
 
 
-def run_loss(net,data,criterion):
+def run_loss(net,inputs,labels,criterion):
 
-  inputs, labels = data
-  inputs, labels = Variable(torch.Tensor(inputs)), Variable(torch.Tensor(labels))
 
   outputs = net(inputs)
   loss = criterion(outputs,labels)
@@ -87,7 +86,7 @@ def run_loss(net,data,criterion):
 
 
 def main():
-  net = AMT()
+  net = AMT().cuda()
   train_x_list,train_y_list = utils.data_load(os.path.join(data_path,'train/'),2)
   test_x_list,test_y_list = utils.data_load(os.path.join(data_path,'test/'),2)
   
@@ -105,7 +104,14 @@ def main():
   train_y = np.vstack(train_y_list)
   test_x = np.vstack(test_x_list)
   test_y = np.vstack(test_y_list) 
-
+ 
+  # For GPU computing.
+  dtype = torch.cuda.FloatTensor
+  train_x = Variable(torch.Tensor(train_x).type(dtype))
+  train_y = Variable(torch.Tensor(train_y).type(dtype))
+  test_x = Variable(torch.Tensor(test_x).type(dtype))
+  test_y = Variable(torch.Tensor(test_y).type(dtype))
+  
   min_valid_loss = float('inf') 
   patience = 0
   
@@ -114,28 +120,36 @@ def main():
 
   print ('Preprocessing Completed.')
 
+  '''
+  net.load_state_dict(torch.load(model_save_path+'10'))
+  out = net(train_x[:10])
+  print(out) 
+  '''
   for i in range(max_epoch):
     
     # Permutate train_x.
     train_x, trian_y = utils.permutate(train_x,train_y)
     
     # Train and calculate loss value.
-    # train_loss = run_train(net,(train_x,train_y),criterion,optimizer,2)
-    valid_loss = run_loss(net,(test_x,test_y),criterion).data.numpy()
-    pdb.set_trace()
+    train_loss = run_train(net,train_x,train_y,criterion,optimizer,
+                           batch_size).cpu().data.numpy()
+    valid_loss = run_loss(net,test_x,test_y,criterion).cpu().data.numpy()
     if(valid_loss<min_valid_loss):
       patience = 0
       min_valid_loss = valid_loss
     else :
       patience += 1
-    
-    if(patience==20) : break
+    if(patience==20) : 
+      torch.save(net.state_dict(),model_save_path+str(i+1))
+      print('***{}th last model is saved.***'.format(i+1))
+      break
     
     print ('------{}th iteration (max:{})-----'.format(i+1,max_epoch)) 
     print ('train_loss : ' ,train_loss)
     print ('valid_loss : ' ,valid_loss)
     print ('patience : ' ,patience)
-
-
-
+    
+    if ( i % save_freq == save_freq-1):
+      torch.save(net.state_dict(),model_save_path+str(i+1))
+      print ('***{}th model is saved.***'.format(i+1))
 main()
