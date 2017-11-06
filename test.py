@@ -3,9 +3,11 @@ import numpy as np
 import utils
 
 
-data = 0.5*np.random.randn(100,7,264) + 1
+a = np.ones([100,264])
+
 pdb.set_trace()
 
-data = utils.standardize(data,2)
+b = utils.window(a,7)
 
-print data
+
+print b 
