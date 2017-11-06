@@ -65,7 +65,7 @@ class AMT():
             logit = fully_connected(input,num_neurons)    
             input = tf.sigmoid(logit)
 
-        logit = fully_connected(input,num_pitches)
+        git = fully_connected(input,num_pitches)
         loss = tf.nn.sigmoid_cross_entropy_with_logits(logit,self.y)
         output = tf.sigmoid(logit)
 

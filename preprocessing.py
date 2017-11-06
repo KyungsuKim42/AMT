@@ -9,17 +9,24 @@ import matplotlib.pyplot as plt
 target_sr=16000
 hop_length=512
 frame_per_sec = target_sr/float(hop_length) # 31.25
-sec_per_frame = 1/frame_per_sec
+sec_per_frame = 1/frame_per_sec #32ms
 n_bins = 264
 bins_per_octave=36
 real=False
 
 #Extracting .wav, .txt file lists
-data_dir = os.path.join(os.path.dirname(__file__),'data')
-wavfile_list = sorted(glob.glob(os.path.join(data_dir,'*.wav')))
-txtfile_list = sorted(glob.glob(os.path.join(data_dir,'*.txt')))
-cqt_list = []
-label_list = []
+data_dir = '/home/data/kyungsu/AMT'
+sub_dir_list = ['AkPnBsdf', 'AkPnCGdD', 'AkPnStgb', 'ENSTDkAm', 'ENSTDkCl',
+                'SptkBGAm', 'SptkBGCl', 'StbgTGd2']
+
+wavfile_list = []
+txtfile_list = []
+for sub in sub_dir_list:
+  txtfile_list = txtfile_list + \
+                 sorted(glob.glob(os.path.join(data_dir,sub,'MUS','*.txt')))
+  wavfile_list = wavfile_list + \
+                 sorted(glob.glob(os.path.join(data_dir,sub,'MUS','*.wav')))
+
 
 #Do some CQT
 for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
@@ -27,9 +34,9 @@ for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
     original_sr,wav = scipy.io.wavfile.read(wavfile)
     wav = 0.5*(wav[:,0]+wav[:,1])
     wav_resample = librosa.core.resample(wav,original_sr,target_sr)
-    cqt_wav=librosa.core.cqt(y=wav_resample,sr=target_sr,hop_length=hop_length,
-                             fmin=librosa.core.note_to_hz('A0'),n_bins=n_bins,
-                             bins_per_octave=bins_per_octave,real=real)
+    cqt_wav=np.abs(librosa.core.cqt(y=wav_resample,sr=target_sr,
+                   hop_length=hop_length,fmin=librosa.core.note_to_hz('A0'),
+                   n_bins=n_bins,bins_per_octave=bins_per_octave))
     np.save(wavfile+".npy",cqt_wav)
    
     #Make labeled data
