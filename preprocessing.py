@@ -38,7 +38,7 @@ for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
                    hop_length=hop_length,fmin=librosa.core.note_to_hz('A0'),
                    n_bins=n_bins,bins_per_octave=bins_per_octave))
     np.save(wavfile+".npy",cqt_wav)
-   
+
     #Make labeled data
     y_data = np.zeros((88,cqt_wav.shape[1]))
     with open(txtfile) as f:
@@ -50,7 +50,6 @@ for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
         end_frame = int(round(frame_per_sec*float(line[1])))
         pitch = int(line[2])-21
         for j in range(start_frame,end_frame):
-            y_data[pitch,j]=1
+            y_data[pitch,j]=1 asdf
     np.save(txtfile+".npy",y_data)
     print "%d / %d" % (i+1,len(txtfile_list))
-
