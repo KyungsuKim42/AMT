@@ -6,13 +6,8 @@ import glob
 import pdb
 import matplotlib.pyplot as plt
 #Parameters of CQT
-target_sr=16000
-hop_length=512
 frame_per_sec = target_sr/float(hop_length) # 31.25
 sec_per_frame = 1/frame_per_sec #32ms
-n_bins = 264
-bins_per_octave=36
-real=False
 
 #Extracting .wav, .txt file lists
 data_dir = '/home/data/kyungsu/AMT'
@@ -31,12 +26,8 @@ for sub in sub_dir_list:
 #Do some CQT
 for i,(wavfile,txtfile) in enumerate(zip(wavfile_list,txtfile_list)):
     #Make CQT matrix
-    original_sr,wav = scipy.io.wavfile.read(wavfile)
-    wav = 0.5*(wav[:,0]+wav[:,1])
-    wav_resample = librosa.core.resample(wav,original_sr,target_sr)
-    cqt_wav=np.abs(librosa.core.cqt(y=wav_resample,sr=target_sr,
-                   hop_length=hop_length,fmin=librosa.core.note_to_hz('A0'),
-                   n_bins=n_bins,bins_per_octave=bins_per_octave))
+    wav = utils.load_wav(wavfile)
+    cqt_wav = utils.cqt(wav)
     np.save(wavfile+".npy",cqt_wav)
 
     #Make labeled data

@@ -11,17 +11,18 @@ import os.path
 import utils
 import pdb
 
-data_path = '/home/data/kyungsu/AMT/processed/'
-model_save_path = '/home/kyungsukim/AMT/model/AMT_pytorch_model'
-save_freq = 100
-max_epoch = 5000
-max_patience = 20
-window_size = 7
-num_features = 264
-batch_size = 256
-
 
 def main():
+
+  data_path = '/home/data/kyungsu/AMT/processed/'
+  model_save_path = '/home/kyungsukim/AMT/model/AMT_pytorch_model'
+  save_freq = 100
+  max_epoch = 5000
+  max_patience = 20
+  window_size = 7
+  num_features = 264
+  batch_size = 256
+
   net = pytorch_model.AMT(window_size,num_features).cuda()
   train_x_list,train_y_list = utils.data_load(os.path.join(data_path,'train/'),2)
   test_x_list,test_y_list = utils.data_load(os.path.join(data_path,'test/'),2)
@@ -67,8 +68,8 @@ def main():
     train_x, trian_y = utils.permutate(train_x,train_y)
 
     # Train and calculate loss value.
-    train_loss = pytorch_model.run_train(net,train_x,train_y,criterion,optimizer,
-                           batch_size).cpu().data.numpy()
+    train_loss = pytorch_model.run_train(net,train_x,train_y,criterion,
+                                         optimizer,batch_size).cpu().data.numpy()
     valid_loss = pytorch_model.run_loss(net,test_x,test_y,criterion).cpu().data.numpy()
     if(valid_loss<min_valid_loss):
       patience = 0
