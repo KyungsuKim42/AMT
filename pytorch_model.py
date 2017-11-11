@@ -36,7 +36,7 @@ class AMT(nn.Module):
   # return feature map of each conv layer.
   def features(self,x):
     relu1 = F.relu(F.max_pool2d(self.conv1(x),(1,3)))
-    relu2 = F.relu(F.max_pool2d(self.conv2(relu1),(1,3)))
+    relu2 = F.relu(F.max_pool2d(self.conv2(relu1),(1,3),padding=(0,1)))
     return relu1, relu2
 
   def grams(self,x):

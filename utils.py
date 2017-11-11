@@ -26,7 +26,7 @@ def standardize(data,axis):
   Returns
     data (numpy array) : Standardized data.
   """
-  assert axis<22
+  assert axis<2
   shape = list(data.shape)
   shape.pop(axis)
   for i in range(shape[0]):
