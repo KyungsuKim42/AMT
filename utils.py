@@ -29,9 +29,12 @@ def standardize(data,axis):
   assert axis<2
   shape = list(data.shape)
   shape.pop(axis)
-  for i in range(shape[0]):
-      if (axis==0): data[:,i] = (data[:,i] - data[:,i].mean()) / data[:,i].std()
-      elif (axis==1): data[i,:] = (data[i,:] - data[i,:].mean()) / data[i,:].std()
+  if(axis==0):
+    for i in range(shape[0]):
+      data[:,i] = (data[:,i] - data[:,i].mean()) / data[:,i].std()
+  elif(axis==1):
+    for i in range(shape[1]):
+      data[i,:] = (data[i,:] - data[i,:].mean()) / data[i,:].std()
 
   return data
 

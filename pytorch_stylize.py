@@ -33,8 +33,8 @@ def main():
 
   content_wav= utils.load_wav(content_file)[:180000]
   style_wav = utils.load_wav(style_file)
-  content_cqt = utils.standardize(utils.cqt(content_wav),axis=1)
-  style_cqt = utils.standardize(utils.cqt(style_wav),axis=1)
+  content_cqt = utils.standardize(utils.cqt(content_wav).T,axis=0)
+  style_cqt = utils.standardize(utils.cqt(style_wav).T,axis=0)
   content_cqt = content_cqt.reshape([1,1,-1,264])
   style_cqt = style_cqt.reshape([1,1,-1,264])
 
