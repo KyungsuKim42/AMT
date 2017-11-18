@@ -2,6 +2,10 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import utils
+import numpy as np
+import pdb
+import sys
 
 class AMT(nn.Module):
 
@@ -26,7 +30,7 @@ class AMT(nn.Module):
   def forward(self,x):
     x = x.view(-1,1,self.window_size,self.num_features)
     x = F.relu(F.max_pool2d(self.conv1(x),(1,3)))
-    x = F.relu(F.max_pool2d(self.conv2(x),(1,3)))
+    x = F.relu(F.max_pool2d(self.conv2(x),(1,3),padding=(0,1)))
     x = x.view(-1,7*30*50)
     x = F.sigmoid(self.fc1(x))
     x = F.sigmoid(self.fc2(x))
@@ -53,33 +57,62 @@ class AMT(nn.Module):
 
     return g_list
 
-
-def run_train(net,inputs,labels,criterion,optimizer,batch_size=256):
+def run_train(net,inputs,labels,criterion,optimizer,
+              piece_lens,batch_size=256,window_size=7):
 
   overall_loss = 0.0
-
-  num_samples = inputs.size()[0]
+  overall_num_samples = 0
+  num_samples = sum(piece_lens)
   num_batches = (num_samples+batch_size-1) / batch_size
 
+  perm = np.random.permutation(num_samples)
   for i in range(num_batches):
-    input_batch = inputs[i*batch_size:(i+1)*batch_size]
-    label_batch = labels[i*batch_size:(i+1)*batch_size]
+
+
+    input_batch,label_batch = utils.next_batch(
+        inputs,labels,perm[i*batch_size:(i+1)*batch_size],
+        piece_lens,window_size)
+
     optimizer.zero_grad()
     output_batch = net(input_batch)
     loss = criterion(output_batch,label_batch)
     loss.backward()
     optimizer.step()
-    overall_loss = overall_loss + loss*input_batch.size()[0]
-    print('progress : {}/{}'.format(i,num_batches),end='\r')
-
+    overall_loss += loss*input_batch.size()[0]
+    overall_num_samples += input_batch.size()[0]
+    cumul_loss = overall_loss / float(overall_num_samples)
+    print('progress : {:4d}/{:4d} loss : {:6.3f}'.format(
+        i,num_batches,cumul_loss.cpu().data.numpy()[0]),end='\r')
+    sys.stdout.flush()
+  print('')
   mean_loss = overall_loss / float(num_samples)
 
-  return loss
+  return mean_loss
 
 
-def run_loss(net,inputs,labels,criterion):
+def run_loss(net,inputs,labels,criterion,piece_lens,batch_size,window_size):
+  overall_loss = 0.0
+  overall_num_samples = 0
+  num_samples = sum(piece_lens)
+  num_batches = (num_samples+batch_size-1) / batch_size
 
-  outputs = net(inputs)
-  loss = criterion(outputs,labels)
+  perm = np.random.permutation(num_samples)
 
-  return loss
+  for i in range(num_batches):
+    input_batch,label_batch = utils.next_batch(
+        inputs,labels,perm[i*batch_size:(i+1)*batch_size],
+        piece_lens,window_size)
+
+    output_batch = net(input_batch)
+    loss = criterion(output_batch,label_batch)
+    overall_loss += loss*input_batch.size()[0]
+    overall_num_samples += input_batch.size()[0]
+    cumul_loss = overall_loss / float(overall_num_samples)
+    print('valid progress : {:4d}/{:4d} loss : {:6.3f}'.format(
+        i,num_batches,cumul_loss.cpu().data.numpy()[0]),end='\r')
+    sys.stdout.flush()
+  print('')  
+  mean_loss = overall_loss / float(num_samples)
+
+
+  return mean_loss

@@ -1,38 +1,20 @@
-from __future__ import print_function
-
+import scipy.io.wavfile as wavfile
 import numpy as np
+from numpy import inf
+import utils
+import matplotlib.pyplot as plt
+import pdb
 
-import torch
-import torch.nn.functional as F
-from torch.autograd import Variable
+sr,wav = wavfile.read('example2.wav')
+wav = np.mean(wav,axis=1)
 
-iteration = 1000
-lr = 0.001
-x = Variable(torch.randn(5,2,2),requires_grad=True)
-target = Variable(torch.randn(1,5,5))
-optimizer = torch.optim.SGD([x],lr=lr)
-loss = torch.nn.MSELoss()
-#import pdb; pdb.set_trace()
-for i in range(iteration):
-  x_view = x.view(5,-1)
-  gram = torch.mm(x_view,x_view.t())
-  gram = gram / 4.
-  gram = gram.view(1,5,5)
-  gram = F.relu(F.max_pool2d(gram,(1,1)))
-  output = loss(gram,target)
-  output.backward(retain_graph=True)
-  optimizer.step()
-  optimizer.zero_grad()
-  #x.data -= lr*x.grad.data
-  #x.grad.data.zero_()
-  print('loss : {}'.format(output))
-'''
-
-loss = torch.nn.MSELoss()
-input = Variable(torch.randn(3,3),requires_grad=True)
-m  = input + 3
-target = Variable(torch.randn(3,3))
-output = loss(m,target)
-output.backward()
-import pdb; pdb.set_trace()
-'''
+cqt = utils.cqt(wav)
+print(cqt.min())
+std_cqt = utils.standardize(cqt)
+log_std_cqt = utils.standardize(cqt+1,log=True)
+#log_std_cqt[log_std_cqt == -inf] = 0
+pdb.set_trace()
+plt.pcolormesh(std_cqt,cmap='jet')
+plt.show()
+plt.pcolormesh(log_std_cqt,cmap='jet')
+plt.show()
